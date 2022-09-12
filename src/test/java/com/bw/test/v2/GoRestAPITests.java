@@ -277,24 +277,37 @@ public class GoRestAPITests extends AbstractTest {
 	@Test
 	public void shouldNotCreateUserWithAnExistingEmail() {
 		//given
-		String userDataJson = "{\"name\":\"Dennis DeMenise\", \"gender\":\"male\", \"email\":\"denis@demenise.com\", \"status\":\"active\"}";
+		String userDataJson = "{\"name\":\"Dennis DeMenise\", \"gender\":\"male\", \"email\":\"denis_@demenise.com\", \"status\":\"active\"}";
 
-		//given
 		RequestSpecification requestSpecification = given().
 				header("Accept", "application/json").
 				header("Content-Type", "application/json").
 				header("Authorization", "Bearer " + bearerAccessToken);
 
-		//when
 		Response response = requestSpecification.
 				given().
 				body(userDataJson).
 				when().
 				post(USERS_V2_URL);
 
+		response.then().statusCode(201);
+
+
+		//when
+		RequestSpecification requestSpecificationEmail = given().
+				header("Accept", "application/json").
+				header("Content-Type", "application/json").
+				header("Authorization", "Bearer " + bearerAccessToken);
+
+		Response responseEmail = requestSpecificationEmail.
+				given().
+				body(userDataJson).
+				when().
+				post(USERS_V2_URL);
+
 		//then
-		response.then().statusCode(422);
-		List<Object> userData = response.body().jsonPath().getList("");
+		responseEmail.then().statusCode(422);
+		List<Object> userData = responseEmail.body().jsonPath().getList("");
 		assertThat(userData.size(), is(1));
 		assertThat(userData.get(0).toString(), containsString("{field=email, message=has already been taken}"));
 	}
